@@ -27,7 +27,7 @@ Follow these steps to set up the Vendor Management System:
 
 1. Clone the repository:
    ```
-   git clone <repository_url>
+   git clone https://github.com/krishnasankarkk/vendor-management-system.git
    ```
 2. Navigate to the project directory:
    ```
