@@ -40,9 +40,10 @@ class VendorViewSet(viewsets.ModelViewSet):
     Define URL patterns and map them to this viewset using Django's URL patterns syntax.
     """
     authentication_classes = [TokenAuthentication]
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = Vendor.objects.all()
     serializer_class = VendorSerializer
+
 
 class PurchaseOrderViewSet(viewsets.ModelViewSet):
     """
@@ -63,9 +64,16 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
     Define URL patterns and map them to this viewset using Django's URL patterns syntax.
     """
     authentication_classes = [TokenAuthentication]
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     queryset = PurchaseOrder.objects.all()
     serializer_class = PurchaseOrderSerializer
+
+    def get_queryset(self):
+        queryset = self.queryset
+        vendor_id = self.request.query_params.get('vendor_id', None)
+        if vendor_id:
+            queryset = queryset.filter(vendor_id=vendor_id)
+        return queryset
 
 def index(request):
     return render(request, 'api/index.html')

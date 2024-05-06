@@ -20,8 +20,8 @@ from .views import (
 )
 
 router = routers.DefaultRouter()
-router.register(r'vendors', VendorViewSet)
-router.register(r'purchase_orders', PurchaseOrderViewSet)
+router.register(r'vendors', VendorViewSet, basename='vendors')
+router.register(r'purchase_orders', PurchaseOrderViewSet, basename='purchase_orders')
 
 urlpatterns = [
     path('', include(router.urls)),

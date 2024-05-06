@@ -28,7 +28,7 @@ class Vendor(models.Model):
     name = models.CharField(max_length=100)
     contact_details = models.TextField()
     address = models.TextField()
-    vendor_code = models.CharField(unique=True, max_length=100, blank=True, null=True)
+    vendor_code = models.CharField(unique=True, max_length=100)
     on_time_delivery_rate = models.FloatField(default=0)
     quality_rating_avg = models.FloatField(default=0)
     average_response_time = models.FloatField(default=0)
@@ -89,21 +89,6 @@ class Vendor(models.Model):
             vendor.fulfillment_rate = fulfillment_rate
             vendor.save()
 
-@receiver(post_save, sender=Vendor)
-def generate_vendor_code(sender, instance, created, **kwargs):
-    """
-    Method to generate vendor code for newly created vendor.
-
-    Args:
-        sender (model class): Represents the class that sent the signal.
-        instance (model instance): Represents the instance of the Vendor  Model created.
-        created (bool): Boolean flag represents whether the instance created or not.
-    """
-    if created and not instance.vendor_code:
-        # Pad ID with zeros to ensure minimum 6 digits
-        instance.vendor_code = f"VC-{instance.id:06d}"
-        instance.save()
-
 class PurchaseOrder(models.Model):
     """
     Class represents Purchase Order database model.
@@ -149,7 +134,7 @@ def generate_po_number(sender, instance, created, **kwargs):
         instance.save()
 
 @receiver(post_save, sender=PurchaseOrder)
-def update_metrics(sender, instance, **kwargs): 
+def update_metrics(sender, instance, **kwargs):
     Vendor.calculate_metrics(instance.vendor)
 
 class HistoricalPerformance(models.Model):
