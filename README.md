@@ -25,36 +25,45 @@ The Vendor Management System (VMS) is a Django-based application developed to ma
 ## Setup Instructions
 Follow these steps to set up the Vendor Management System:
 
-1. Clone the repository:
+1. Ensure latest python and pip is installed.
+   ```
+   python --version && pip --version
+   ```
+2. Setup virtual environment for the project.
+   ```
+   python -m venv venv
+   ```
+3. Activate virtual environment.
+   
+    On Windows:
+     ```
+     venv\Scripts\activate
+     ```
+    On Linux:
+     ```
+     source venv/bin/activate
+     ```
+4. Clone the repository:
    ```
    git clone https://github.com/krishnasankarkk/vendor-management-system.git
    ```
-2. Navigate to the project directory:
+5. Navigate to the project directory:
    ```
-   cd vendor_management_system
+   cd vendor-management-system
    ```
-3. Install dependencies:
+6. Install dependencies:
    ```
    pip install -r requirements.txt
    ```
-4. Apply migrations:
+7. Apply migrations:
    ```
    python manage.py migrate
    ```
-5. Run the development server:
+8. Run the development server:
    ```
    python manage.py runserver
    ```
-6. Access the API at `http://localhost:8000/`.
-
-## Testing
-To test the functionality and reliability of the endpoints, follow these steps:
-
-1. Run the test suite:
-   ```
-   python manage.py test
-   ```
-2. Check the test results for any failures and errors.
+9. Access the API at `http://localhost:8000/api/`.
 
 ## API Endpoints
 The VMS exposes the following API endpoints:
@@ -81,6 +90,15 @@ metrics.
 - **Additional Endpoints:**
   - `POST /api/purchase_orders/{po_id}/acknowledge` : For vendors to acknowledge
 POs.
+
+## Testing
+To test the functionality and reliability of the endpoints, follow these steps:
+
+1. Run the test suite:
+   ```
+   python manage.py test
+   ```
+2. Check the test results for any failures and errors.
 
 ## Conclusion
 The Vendor Management System provides a robust solution for tracking vendor profiles, purchase orders, and evaluating vendor performance metrics. If you encounter any issues during setup or testing, feel free to reach out for assistance.
