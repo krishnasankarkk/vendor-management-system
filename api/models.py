@@ -100,7 +100,8 @@ def generate_vendor_code(sender, instance, created, **kwargs):
         created (bool): Boolean flag represents whether the instance created or not.
     """
     if created and not instance.vendor_code:
-        instance.vendor_code = f"VC-{instance.id:06d}"  # Pad ID with zeros to ensure minimum 6 digits
+        # Pad ID with zeros to ensure minimum 6 digits
+        instance.vendor_code = f"VC-{instance.id:06d}"
         instance.save()
 
 class PurchaseOrder(models.Model):
@@ -148,7 +149,7 @@ def generate_po_number(sender, instance, created, **kwargs):
         instance.save()
 
 @receiver(post_save, sender=PurchaseOrder)
-def update_metrics(sender, instance, **kwargs):
+def update_metrics(sender, instance, **kwargs): 
     Vendor.calculate_metrics(instance.vendor)
 
 class HistoricalPerformance(models.Model):
@@ -173,4 +174,3 @@ class HistoricalPerformance(models.Model):
 
     def __str__(self):
         return f"Vendor : {self.vendor.name}, Date : {self.date}"
-    

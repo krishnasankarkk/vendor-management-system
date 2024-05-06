@@ -1,7 +1,23 @@
+"""
+This module contains URL patterns for the Django app.
+
+The URLs module defines the routing configuration for the Django app, mapping URL patterns
+to corresponding views or viewsets. It serves as the entry point for incoming HTTP requests
+and dispatches them to the appropriate view functions or viewsets for processing.
+
+Usage:
+1. Define URL patterns using Django's URL patterns syntax.
+2. Map URL patterns to views or viewsets using the `path` or `re_path` functions.
+"""
 from django.urls import path, include
 from rest_framework import routers
 
-from .views import VendorViewSet, PurchaseOrderViewSet, VendorPerformanceAPIView, AcknowledgePurchaseOrderView
+from .views import (
+    VendorViewSet,
+    PurchaseOrderViewSet,
+    VendorPerformanceAPIView,
+    AcknowledgePurchaseOrderView
+)
 
 router = routers.DefaultRouter()
 router.register(r'vendors', VendorViewSet)
