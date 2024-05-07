@@ -17,7 +17,8 @@ from .views import (
     PurchaseOrderViewSet,
     VendorPerformanceAPIView,
     AcknowledgePurchaseOrderView,
-    RecordHistoricalPerformanceView
+    RecordHistoricalPerformanceView,
+    UserAuthentication
 )
 
 router = routers.DefaultRouter()
@@ -26,6 +27,11 @@ router.register(r'purchase_orders', PurchaseOrderViewSet, basename='purchase_ord
 
 urlpatterns = [
     path('', include(router.urls)),
+    path(
+        'generate-token',
+        UserAuthentication.as_view(),
+        name='generate_token'
+    ),
     path(
         'vendors/<int:vendor_id>/performance',
         VendorPerformanceAPIView.as_view(),

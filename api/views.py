@@ -12,8 +12,10 @@ Usage:
 """
 from django.shortcuts import render
 from django.utils import timezone
+from django.contrib.auth import authenticate
 from rest_framework import permissions, response, status, views, viewsets
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
 
 from .models import PurchaseOrder, Vendor, HistoricalPerformance
 from .serializers import (
@@ -21,6 +23,23 @@ from .serializers import (
     VendorPerformanceSerializer,
     VendorSerializer)
 
+
+class UserAuthentication(views.APIView):
+    """
+    API endpoint to authenticate users and obtain a token.
+    """
+    permission_classes = [permissions.AllowAny]
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = authenticate(username=username, password=password)
+
+        if user is not None:
+            token, created = Token.objects.get_or_create(user=user)
+            return response.Response({'token': token.key})
+        else:
+            return response.Response({'error': 'Invalid credentials'}, status=400)
 
 class VendorViewSet(viewsets.ModelViewSet):
     """
