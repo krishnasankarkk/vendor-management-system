@@ -88,8 +88,33 @@ vendor.
 metrics.
 
 - **Additional Endpoints:**
-  - `POST /api/purchase_orders/{po_id}/acknowledge` : For vendors to acknowledge
-POs.
+  - `POST /api/purchase_orders/{po_id}/acknowledge` : For vendors to acknowledge POs.
+  - `POST /api/vendors/{vendor_id}/record_historical_performance` : For record historical data of performance metrics of each vendor.
+  - `POST /api/generate-token/` : Generate tokens for user authentication.
+
+## Secured API Endpoints with Token-Based Authentication
+To ensure the security the Vendor Management System's API endpoints, A token-based authentication is implemented using Django REST Framework's TokenAuthentication. This mechanism requires clients to provide a valid token with each request, thereby restricting access to authenticated users only.
+
+### Setup Instructions for Token-Based Authentication
+1. You need to create a admin user using this command:
+    
+    ```
+    python manage.py createsuperuser
+    ```
+2. Generate Token.
+   - Using Django's built-in Administration you can manage users and generate tokens for each user. Go to this url `http://localhost:8000/admin/` in your browser. After login click on 'Add new token' under AUTH TOKEN menu.
+   - Or Using this API endpoint `POST /api/generate-token/` :This API authenticates user and returns a token key. Provide required credentials as given below:
+     ```
+      {
+        "username": "<username>",
+        "password": "<password>"
+      }
+     ```
+3. Include this token in the request headers of every APIs as given below.
+
+     ```
+     Authorization: Token <token>
+     ```
 
 ## Testing
 To test the functionality and reliability of the endpoints, follow these steps:
