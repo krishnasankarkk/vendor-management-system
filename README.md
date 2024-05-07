@@ -66,7 +66,7 @@ Follow these steps to set up the Vendor Management System:
 9. Access the API at `http://localhost:8000/api/`.
 
 ## API Endpoints
-The VMS exposes the following API endpoints:
+This system exposes the following API endpoints:
 
 - **Vendor Profile Management:**
   - `POST /api/vendors/` : Create a new vendor.
