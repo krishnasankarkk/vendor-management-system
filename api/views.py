@@ -15,7 +15,7 @@ from django.utils import timezone
 from rest_framework import permissions, response, status, views, viewsets
 from rest_framework.authentication import TokenAuthentication
 
-from .models import PurchaseOrder, Vendor
+from .models import PurchaseOrder, Vendor, HistoricalPerformance
 from .serializers import (
     PurchaseOrderSerializer,
     VendorPerformanceSerializer,
@@ -40,7 +40,7 @@ class VendorViewSet(viewsets.ModelViewSet):
     Define URL patterns and map them to this viewset using Django's URL patterns syntax.
     """
     authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Vendor.objects.all()
     serializer_class = VendorSerializer
 
@@ -64,7 +64,7 @@ class PurchaseOrderViewSet(viewsets.ModelViewSet):
     Define URL patterns and map them to this viewset using Django's URL patterns syntax.
     """
     authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = PurchaseOrder.objects.all()
     serializer_class = PurchaseOrderSerializer
 
@@ -181,8 +181,60 @@ class AcknowledgePurchaseOrderView(views.APIView):
                 {'message': 'Purchase order acknowledged successfully'},
                 status=status.HTTP_200_OK
             )
+        except PurchaseOrder.DoesNotExist:
+            return response.Response(
+                {'error': 'Purchase order not found!'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+class RecordHistoricalPerformanceView(views.APIView):
+    """
+    API view for record historical performance of vendor.
+
+    This API view allows authenticated users to record the historical performance of a vendor.
+
+    Attributes:
+    - authentication_classes: List of authentication classes used to authenticate users.
+    - permission_classes: List of permission classes controlling access to the view.
+
+    Methods:
+    - post: Handles HTTP POST requests and record the historical performance of specified vendor.
+
+    Usage:
+        Define URL patterns and map them to this view using Django's URL patterns syntax.
+    Permissions:
+        By default, this view requires authentication by token, ensuring that only users with a 
+        valid token can access it.
+        You can further customize permissions by setting appropriate permission classes using 
+        the `permission_classes` attribute.
+
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.AllowAny]
+    def post(self, _, vendor_id):
+        """
+        Record historical performance of the specified vendor.
+
+        This method handles HTTP POST requests and record the historical performance of a vendor.
+
+        Parameters:
+        - request: HTTP request object.
+        - vendor_id: ID of the given vendor.
+
+        Returns:
+        - Response with message and HTTP status code.
+        
+        """
+        try:
+            vendor = Vendor.objects.get(pk=vendor_id)
+            record = HistoricalPerformance()
+            record.vendor = vendor
+            record.save()
+            return response.Response(
+                {'message': 'Recorded performance of vendor successfully'},
+                status=status.HTTP_200_OK
+            )
         except Vendor.DoesNotExist:
             return response.Response(
-                {'error': 'Purchase order not found'},
+                {'error': 'Vendor not found!'},
                 status=status.HTTP_404_NOT_FOUND
             )

@@ -16,7 +16,8 @@ from .views import (
     VendorViewSet,
     PurchaseOrderViewSet,
     VendorPerformanceAPIView,
-    AcknowledgePurchaseOrderView
+    AcknowledgePurchaseOrderView,
+    RecordHistoricalPerformanceView
 )
 
 router = routers.DefaultRouter()
@@ -34,5 +35,10 @@ urlpatterns = [
         'purchase_orders/<int:po_id>/acknowledge',
         AcknowledgePurchaseOrderView.as_view(),
         name='vendor_performance'
+    ),
+    path(
+        'vendors/<int:vendor_id>/record_historical_performance',
+        RecordHistoricalPerformanceView.as_view(),
+        name='record_historical_performance'
     ),
 ]

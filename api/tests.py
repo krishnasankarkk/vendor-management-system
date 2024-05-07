@@ -76,7 +76,7 @@ class VendorAPITest(TestCase):
         Test the create vendor endpoint.
 
         This method sends a POST request to the create vendor endpoint and asserts that
-        the response status code is HTTP 200 OK.
+        the response status code is HTTP 201 CREATED.
         """
         data = {
             'name': 'New Vendor',
@@ -107,11 +107,21 @@ class VendorAPITest(TestCase):
         """
         Test the delete vendor endpoint.
 
-        This method sends a PUT request to the delete vendor endpoint and asserts that
-        the response status code is HTTP 200 OK.
+        This method sends a DELETE request to the delete vendor endpoint and asserts that
+        the response status code is HTTP 204 NO CONTENT.
         """
         response = self.client.delete(f'/api/vendors/{self.vendor.id}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_vendor_performance(self):
+        """
+        Test the vendor performance endpoint.
+
+        This method sends a GET request to the vendor performance endpoint and asserts that
+        the response status code is HTTP 200 OK.
+        """
+        response = self.client.get(f'/api/vendors/{self.vendor.id}/performance')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class PurchaseOrderAPITest(TestCase):
     """
@@ -151,6 +161,30 @@ class PurchaseOrderAPITest(TestCase):
         self.po1 = PurchaseOrder.objects.create(
             vendor=self.vendor1
         )
+        # Create a user and obtain their authentication token
+        self.user = User.objects.create_user(username='test_user', password='test_password')
+        self.token = Token.objects.create(user=self.user)
+
+        # Set authentication for all requests made using self.client
+        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+
+    def test_create_purchase_order(self):
+        """
+        Test the retrieve purchase order endpoint.
+
+        This method sends a POST request to the retrieve purchase order endpoint with a valid po ID
+        and asserts that the response status code is HTTP 201 CREATED.
+        """
+        data = {
+            'vendor': 1,
+            'items': {
+                'item' : 'Item name',
+                'details': 'Details',
+            },
+            'quantity': 5,
+        }
+        response = self.client.post('/api/purchase_orders/', data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_list_purchase_orders(self):
         """
@@ -164,10 +198,10 @@ class PurchaseOrderAPITest(TestCase):
 
     def test_list_purchase_orders_filter_by_vendor(self):
         """
-        Test the list purchase orders endpoint.
+        Test the list purchase orders filter by vendor endpoint.
 
-        This method sends a GET request to the list purchase order endpoint and asserts that
-        the response status code is HTTP 200 OK.
+        This method sends a GET request to the list purchase order filter by vendor endpoint
+        and asserts that the response status code is HTTP 200 OK.
         """
         response = self.client.get(f'/api/purchase_orders/?vendor_id={self.vendor.id}')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -180,4 +214,42 @@ class PurchaseOrderAPITest(TestCase):
         and asserts that the response status code is HTTP 200 OK.
         """
         response = self.client.get(f'/api/purchase_orders/{self.po.id}/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_update_purchase_order(self):
+        """
+        Test the update purchase order endpoint.
+
+        This method sends a PUT request to the update purchase order endpoint with a valid po ID
+        and asserts that the response status code is HTTP 200 OK.
+        """
+        data = {
+            'vendor': 1,
+            'items': {
+                'item' : 'Item name',
+                'details': 'Details',
+            },
+            'quantity': 5,
+        }
+        response = self.client.put(f'/api/purchase_orders/{self.po.id}/', data=data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_delete_purchase_order(self):
+        """
+        Test the delete purchase order endpoint.
+
+        This method sends a DELETE request to the delete purchase order endpoint with a valid po ID
+        and asserts that the response status code is HTTP 200 OK.
+        """
+        response = self.client.delete(f'/api/purchase_orders/{self.po.id}/')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_acknowledge_purchase_order(self):
+        """
+        Test the acknowledge purchase order endpoint.
+
+        This method sends a POST request to the acknowledge purchase order endpoint with a valid po ID
+        and asserts that the response status code is HTTP 200 OK.
+        """
+        response = self.client.post(f'/api/purchase_orders/{self.po.id}/acknowledge')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

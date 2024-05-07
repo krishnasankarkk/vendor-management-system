@@ -8,7 +8,7 @@ table and each attribute represents a table column.
 
 """
 from django.db import models
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 class Vendor(models.Model):
@@ -47,47 +47,48 @@ class Vendor(models.Model):
                 vendor=vendor
             )
             total_vendor_pos = vendor_pos.count()
-            completed_pos = vendor_pos.filter(status='completed')
-            total_completed_pos = completed_pos.count()
-            if total_completed_pos == 0:
-                vendor.on_time_delivery_rate = 0
-            else:
-                # Calculation for on time delivery rate.
-                on_time_pos = completed_pos.filter(
-                    delivery_date__gte=models.F('acknowledgment_date')
-                ).count()
-                on_time_delivery_rate = (on_time_pos / total_completed_pos) * 100
-                vendor.on_time_delivery_rate = on_time_delivery_rate
+            if total_vendor_pos > 0:
+                completed_pos = vendor_pos.filter(status='completed')
+                total_completed_pos = completed_pos.count()
+                if total_completed_pos == 0:
+                    vendor.on_time_delivery_rate = 0
+                else:
+                    # Calculation for on time delivery rate.
+                    on_time_pos = completed_pos.filter(
+                        delivery_date__gte=models.F('acknowledgment_date')
+                    ).count()
+                    on_time_delivery_rate = (on_time_pos / total_completed_pos) * 100
+                    vendor.on_time_delivery_rate = on_time_delivery_rate
 
-            # Calculation for quality rating average.
-            completed_pos_with_quality_rating = completed_pos.filter(
-                quality_rating__isnull=False
-            )
-            total_completed_pos_with_quality_rating = completed_pos_with_quality_rating.count()
-            if total_completed_pos_with_quality_rating > 0:
-                quality_rating_sum = completed_pos_with_quality_rating.aggregate(
-                    models.Sum('quality_rating')
-                )['quality_rating__sum']
-                quality_rating_avg = (
-                    quality_rating_sum / total_completed_pos_with_quality_rating
+                # Calculation for quality rating average.
+                completed_pos_with_quality_rating = completed_pos.filter(
+                    quality_rating__isnull=False
                 )
-                vendor.quality_rating_avg = quality_rating_avg
+                total_completed_pos_with_quality_rating = completed_pos_with_quality_rating.count()
+                if total_completed_pos_with_quality_rating > 0:
+                    quality_rating_sum = completed_pos_with_quality_rating.aggregate(
+                        models.Sum('quality_rating')
+                    )['quality_rating__sum']
+                    quality_rating_avg = (
+                        quality_rating_sum / total_completed_pos_with_quality_rating
+                    )
+                    vendor.quality_rating_avg = quality_rating_avg
 
-            # Calculation for average response time.
-            acknowledged_pos = vendor_pos.filter(
-                acknowledgment_date__isnull=False
-            )
-            total_response_time = 0
-            for po in acknowledged_pos:
-                response_time = (po.acknowledgment_date - po.issue_date).total_seconds()
-                total_response_time += response_time
-            average_response_time = total_response_time / total_vendor_pos
-            vendor.average_response_time = round(average_response_time, 2)
+                # Calculation for average response time.
+                acknowledged_pos = vendor_pos.filter(
+                    acknowledgment_date__isnull=False
+                )
+                total_response_time = 0
+                for po in acknowledged_pos:
+                    response_time = (po.acknowledgment_date - po.issue_date).total_seconds() if po.acknowledgment_date and po.issue_date else 0
+                    total_response_time += response_time
+                average_response_time = total_response_time / total_vendor_pos
+                vendor.average_response_time = round(average_response_time, 2)
 
-            # Calculation for fulfilment rate.
-            fulfillment_rate = total_completed_pos / total_vendor_pos * 100
-            vendor.fulfillment_rate = fulfillment_rate
-            vendor.save()
+                # Calculation for fulfilment rate.
+                fulfillment_rate = total_completed_pos / total_vendor_pos * 100
+                vendor.fulfillment_rate = fulfillment_rate
+                vendor.save()
 
 class PurchaseOrder(models.Model):
     """
@@ -109,7 +110,7 @@ class PurchaseOrder(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, blank=True, null=True)
     order_date = models.DateTimeField(auto_now_add=True)
     delivery_date = models.DateTimeField(blank=True, null=True)
-    items = models.TextField(blank=True, null=True)
+    items = models.JSONField(default=dict)
     quantity = models.IntegerField(blank=True, null=True)
     status = models.CharField(max_length=100, default='pending')
     quality_rating = models.FloatField(blank=True, null=True)
@@ -152,10 +153,18 @@ class HistoricalPerformance(models.Model):
     """
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
-    on_time_delivery_rate = models.FloatField()
-    quality_rating_avg = models.FloatField()
-    average_response_time = models.FloatField()
-    fulfillment_rate = models.FloatField()
+    on_time_delivery_rate = models.FloatField(blank=True, null=True, default=0)
+    quality_rating_avg = models.FloatField(blank=True, null=True, default=0)
+    average_response_time = models.FloatField(blank=True, null=True, default=0)
+    fulfillment_rate = models.FloatField(blank=True, null=True, default=0)
 
     def __str__(self):
         return f"Vendor : {self.vendor.name}, Date : {self.date}"
+
+@receiver(pre_save, sender=HistoricalPerformance)
+def update_historical_record(sender, instance, **kwargs):
+    if instance.vendor:
+        instance.on_time_delivery_rate = instance.vendor.on_time_delivery_rate if instance.vendor.on_time_delivery_rate else None
+        instance.quality_rating_avg = instance.vendor.quality_rating_avg if instance.vendor.quality_rating_avg else None
+        instance.average_response_time = instance.vendor.average_response_time if instance.vendor.average_response_time else None
+        instance.fulfillment_rate = instance.vendor.fulfillment_rate if instance.vendor.fulfillment_rate else None
