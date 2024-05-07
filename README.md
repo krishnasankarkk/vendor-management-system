@@ -1,6 +1,6 @@
 # Vendor Management System Documentation
 
-Welcome to the Vendor Management System documentation. This guide will help you set up and test the VMS system efficiently.
+Welcome to the Vendor Management System documentation. This guide will help you set up and test the system efficiently.
 
 ## Overview
 The Vendor Management System is a Django-based application developed to manage vendor profiles, track purchase orders, and calculate performance metrics for vendors. It offers comprehensive features for efficient vendor management.
